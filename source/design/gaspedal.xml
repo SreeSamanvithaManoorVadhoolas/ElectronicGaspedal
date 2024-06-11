@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rte>
+ <configset>
+  <config name="version" value="Erika 2"/>
+  <config name="path_out" value="{PROJECT_PATH}\out"/>
+  <config name="templateDir" value="{GEN_PATH}\..\templates\erika"/>
+  <config name="userCodeStart" value="/\* USER CODE START {TAG} \*/"/>
+  <config name="userCodeEnd" value="/\* USER CODE END {TAG} \*/"/>
+  <config name="guivers" value="0.1.2"/>
+ </configset>
+ <naming>
+  <config name="signalpoolPrefix" value="sp_"/>
+  <config name="signalpoolPostfix" value=""/>
+  <config name="taskPrefix" value="tsk_"/>
+  <config name="taskPostfix" value=""/>
+  <config name="signalclassPrefix" value="sc_"/>
+  <config name="signalclassPostfix" value=""/>
+  <config name="signalobjectPrefix" value="so_"/>
+  <config name="signalobjectPostfix" value=""/>
+  <config name="swcPrefix" value="swc_"/>
+  <config name="swcPostfix" value=""/>
+  <config name="runnablePrefix" value=""/>
+  <config name="runnablePostfix" value="_run"/>
+  <config name="eventPrefix" value="ev_"/>
+  <config name="eventPostfix" value=""/>
+  <config name="resourcePrefix" value="res_"/>
+  <config name="resourcePostfix" value=""/>
+  <config name="addrPrefix" value="ADR_"/>
+  <config name="addrStartPostfix" value="_START"/>
+  <config name="addrEndPostfix" value="_END"/>
+ </naming>
+ <signalpools>
+  <signalpool description="The common global signal pool, all signals will be stored here" endaddr="ADR_SP_COMMON_END" name="sp_common" shortname="common" startaddr="ADR_SP_COMMON_START"/>
+ </signalpools>
+ <tasks>
+  <task description="Task for IO operations - joystick, engine, brakelight" events="ev_1ms|ev_on_speed_update" mode="Cyclic and Event" name="tsk_io" shortname="io" signalpoolsRO="sp_common" signalpoolsRW="sp_common" tickEvent="ev_1ms" timertickperiod="1"/>
+  <task description="Task for joystick signal data calculation" events="ev_on_joystick_update" mode="Event" name="tsk_control" shortname="control" signalpoolsRO="sp_common" signalpoolsRW="sp_common" tickEvent="0" timertickperiod="0"/>
+  <task description="Task for system operations (age)" events="" mode="System" name="tsk_system" shortname="system" signalpoolsRO="sp_common" signalpoolsRW="sp_common" tickEvent="0" timertickperiod="1"/>
+ </tasks>
+ <signalclasses>
+  <signalclass description="Signalclass representing joystick" name="sc_joystick" shortname="joystick"/>
+  <signalclass description="Signalclass representing speed" name="sc_speed" shortname="speed"/>
+  <signalclass description="Signalclass representing engine" name="sc_engine" shortname="engine"/>
+  <signalclass description="Signalclass representing brakelight" name="sc_brakelight" shortname="brakelight"/>
+ </signalclasses>
+ <signalobjects>
+  <signalobject description="A Signal for x,y components of joystick" indriver="default" name="so_joystick" onDataError="0" onDataUpdate="ev_on_joystick_update" outdriver="0" resource="None" shortname="joystick" signalclass="sc_joystick" signalpool="sp_common"/>
+  <signalobject description="A Signal having speed data" indriver="0" name="so_speed" onDataError="0" onDataUpdate="ev_on_speed_update" outdriver="0" resource="None" shortname="speed" signalclass="sc_speed" signalpool="sp_common"/>
+  <signalobject description="A Signal for speed data to engine" indriver="0" name="so_engine" onDataError="0" onDataUpdate="0" outdriver="default" resource="None" shortname="engine" signalclass="sc_engine" signalpool="sp_common"/>
+  <signalobject description="A Signal for speed data to brakelight" indriver="0" name="so_brakelight" onDataError="0" onDataUpdate="0" outdriver="default" resource="None" shortname="brakelight" signalclass="sc_brakelight" signalpool="sp_common"/>
+ </signalobjects>
+ <swcs>
+  <swc description="SWC for reading/sending joystick data" name="swc_joystick" shortname="joystick"/>
+  <swc description="SWC for setting speed value" name="swc_control" shortname="control"/>
+  <swc description="SWC for engine" name="swc_engine" shortname="engine"/>
+  <swc description="SWC for brakelight" name="swc_brakelight" shortname="brakelight"/>
+ </swcs>
+ <runnables>
+  <runnable component="swc_joystick" cycletime="10" description="Runnable to update joystick signal through pullPort()" events="" name="JOYSTICK_joystick_rx_run" shortname="joystick_rx" signalIN="" signalOUT="so_joystick" task="tsk_io"/>
+  <runnable component="swc_control" cycletime="0" description="Runnable to update speed signal on basis of incoming joystick signal" events="ev_on_joystick_update" name="CONTROL_calcControl_run" shortname="calcControl" signalIN="so_joystick" signalOUT="so_speed" task="tsk_control"/>
+  <runnable component="swc_engine" cycletime="100" description="Runnable to copy incoming speed signal to engine and call pushPort()" events="" name="ENGINE_set_engine_run" shortname="set_engine" signalIN="so_speed" signalOUT="so_engine" task="tsk_io"/>
+  <runnable component="swc_brakelight" cycletime="0" description="Runnable to set brakelight if speed signal is 0" events="ev_on_speed_update" name="BRAKELIGHT_set_brakelight_run" shortname="set_brakelight" signalIN="so_speed" signalOUT="so_brakelight" task="tsk_io"/>
+ </runnables>
+ <events>
+  <event description="A Event for 1ms tick" name="ev_1ms" shortname="1ms"/>
+  <event description="A Event for joystick data update" name="ev_on_joystick_update" shortname="on_joystick_update"/>
+  <event description="A Event for speed data update" name="ev_on_speed_update" shortname="on_speed_update"/>
+ </events>
+ <resources/>
+</rte>
